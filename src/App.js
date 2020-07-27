@@ -1,5 +1,5 @@
 import React from 'react';
-import {BrowserRouter as Router, Route, Switch, NavLink, Link } from 'react-router-dom'
+import {BrowserRouter as Router, Route, Switch, Link } from 'react-router-dom'
 
 import Customers from './components/Customers';
 
@@ -12,12 +12,12 @@ function App() {
         <nav>
           <ul>
             <li>
-              <Link to="/">CusTomers</Link>
+              <Link to="/customers">CusTomers</Link>
             </li>
           </ul>
         </nav>
         <Switch>
-          <Route path="/">
+          <Route path="/customers">
             <Customers />
           </Route>
         </Switch>

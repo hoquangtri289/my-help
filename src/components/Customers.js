@@ -30,20 +30,20 @@ let reducer = (state, action) => {
 };
 const Customers = () => {
     const [customers, dispatch] = useReducer(reducer, initLoading);
-    const [page, setPage] = useState({
-        prePage: 0,
-        nextPage: 10,
-    });
-    let check = useRef(true);
 
-    let [search, setSerch] = useState("");
+    const [params, setParams] = useState({
+        pagination: { page: 0, perPage: 10 },
+        sort: { field: "date", order: "desc" },
+        filter: {},
+    });
+
+    let check = useRef(true);
     let firstName = useRef("");
 
     useEffect(() => {
         let url = check.current
             ? `http://localhost:3000/api/customers`
-            : `http://localhost:3000/api/customers/page/${page.prePage}/${page.nextPage}`;
-            alert(url);
+            : `http://localhost:3000/api/customers/page/${params.pagination.page}/${params.pagination.perPage}`;
         fetch(url)
             .then((response) => response.json())
             .then((data) => {
@@ -51,7 +51,9 @@ const Customers = () => {
                 dispatch({
                     type: "FETCH_LOADING",
                     data: value.filter((value) =>
-                        search ? value.firstName === search : value 
+                        params.filter.firstName
+                            ? value.firstName === params.filter.firstName
+                            : value
                     ),
                 });
             })
@@ -59,13 +61,16 @@ const Customers = () => {
                 dispatch({ type: "FETCH_ERROR" });
             });
         check.current = true;
-    }, [page, search]);
+    }, [params]);
 
     let handleClickNextPage = (e) => {
         check.current = false;
-        setPage({
-            prePage: (e.target.innerHTML - 1) * page.nextPage,
-            nextPage: page.nextPage,
+        setParams({
+            ...params,
+            pagination: {
+                page: (e.target.innerHTML - 1) * params.pagination.perPage,
+                perPage: params.pagination.perPage,
+            },
         });
     };
 
@@ -74,30 +79,42 @@ const Customers = () => {
     };
     let handleSubmit = (e) => {
         e.preventDefault();
-        setSerch(firstName.current);
+        setParams({
+            ...params,
+            filter: {
+                firstName: firstName.current,
+            },
+        });
     };
     return (
         <React.Fragment>
-            <form onSubmit={handleSubmit}>
-                <input type="text" onChange={handleChange} />
-                <button type="submit">Search</button>
-            </form>
-            <ol>
-                {customers.loading
-                    ? "Loading..."
-                    : customers.data.map((doc) => {
-                    return <li>id: {doc.id} ===== {doc.firstName}</li>;
-                      })}
-
-                {customers.error ? customers.error : null}
-            </ol>
-            {
-                [1, 2, 3, 4, 5].map((value) => {
-                    return (
-                    <button onClick={handleClickNextPage}>{value}</button>
-                    )
-                })
-            }
+            {customers.loading ? (
+                "Loanding..."
+            ) : (
+                <div>
+                    <form onSubmit={handleSubmit}>
+                        <input type="text" onChange={handleChange} />
+                        <button type="submit">Search</button>
+                    </form>
+                    <ol>
+                        {customers.data.map((doc) => {
+                            return (
+                                <li key={doc.id}>
+                                    id: {doc.id} ===== {doc.firstName}
+                                </li>
+                            );
+                        })}
+                    </ol>
+                    {[1, 2, 3, 4, 5].map((value) => {
+                        return (
+                            <button key={value} onClick={handleClickNextPage}>
+                                {value}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+            {customers.error ? customers.error : null}
         </React.Fragment>
     );
 };
