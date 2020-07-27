@@ -35,6 +35,10 @@ const Customers = () => {
         nextPage: 10,
     });
     let check = useRef(true);
+
+    let [search, setSerch] = useState("");
+    let firstName = useRef("");
+
     useEffect(() => {
         let url = check.current
             ? `http://localhost:3000/api/customers`
@@ -43,37 +47,57 @@ const Customers = () => {
         fetch(url)
             .then((response) => response.json())
             .then((data) => {
-                console.log(data); // co roiroi
                 let value = Array.isArray(data) ? data : data.results;
-                dispatch({ type: "FETCH_LOADING", data: value });
+                dispatch({
+                    type: "FETCH_LOADING",
+                    data: value.filter((value) =>
+                        search ? value.firstName === search : value 
+                    ),
+                });
             })
             .catch((error) => {
                 dispatch({ type: "FETCH_ERROR" });
             });
         check.current = true;
-    }, [page]);
+    }, [page, search]);
 
     let handleClickNextPage = (e) => {
         check.current = false;
         setPage({
-            prePage: e.target.innerHTML,
-            nextPage: page.nextPage
+            prePage: (e.target.innerHTML - 1) * page.nextPage,
+            nextPage: page.nextPage,
         });
     };
 
+    let handleChange = (e) => {
+        firstName.current = e.target.value;
+    };
+    let handleSubmit = (e) => {
+        e.preventDefault();
+        setSerch(firstName.current);
+    };
     return (
         <React.Fragment>
-            <ul>
+            <form onSubmit={handleSubmit}>
+                <input type="text" onChange={handleChange} />
+                <button type="submit">Search</button>
+            </form>
+            <ol>
                 {customers.loading
                     ? "Loading..."
                     : customers.data.map((doc) => {
-                          return <li>{doc.id}</li>;
+                    return <li>id: {doc.id} ===== {doc.firstName}</li>;
                       })}
 
                 {customers.error ? customers.error : null}
-            </ul>
-            <button onClick={handleClickNextPage}>1</button>
-            <button onClick={handleClickNextPage}>2</button>
+            </ol>
+            {
+                [1, 2, 3, 4, 5].map((value) => {
+                    return (
+                    <button onClick={handleClickNextPage}>{value}</button>
+                    )
+                })
+            }
         </React.Fragment>
     );
 };
